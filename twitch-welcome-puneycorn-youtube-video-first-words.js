@@ -142,39 +142,74 @@ document.addEventListener("DOMContentLoaded", () => {
       const maxresUrl = `https://img.youtube.com/vi/${encodeURIComponent(videoId)}/maxresdefault.jpg`;
       const fallbackUrl = `https://img.youtube.com/vi/${encodeURIComponent(videoId)}/sddefault.jpg`;
 
-      if (videoImgDuration > 0) {
-        const thumbnailImg = createThumbnailElement();
-
-        const testImg = new Image();
-        testImg.onload = () => {
-          thumbnailImg.setAttribute("src", maxresUrl);
-          thumbnailImg.setAttribute("alt", videoTitle);
-        };
-        testImg.onerror = () => {
-          thumbnailImg.setAttribute("src", fallbackUrl);
-          thumbnailImg.setAttribute("alt", videoTitle);
-        };
-        testImg.src = maxresUrl;
-
-        setTimeout(() => {
-          thumbnailImg.setAttribute("src", "");
-          thumbnailImg.setAttribute("alt", "");
-          if (thumbnailImg.parentNode) {
-            thumbnailImg.parentNode.removeChild(thumbnailImg);
-          }
-        }, videoImgDuration);
-      }
-
       if (youtubePlayerDiv && youtubePlayer) {
+        console.log("🎬 Starte YouTube Video...");
+        console.log(`📺 Video ID: ${videoId}`);
+        console.log(`🎵 Titel: ${videoTitle}`);
+        console.log(`⏱️ Dauer: ${videoDuration}ms`);
+
         youtubePlayer.setAttribute("src", youtubeEmbedUrl);
         youtubePlayer.setAttribute("title", videoTitle);
 
         if (videoDuration > 0) {
+          console.log(
+            `⏰ Video wird nach ${videoDuration}ms gestoppt (${Math.round(videoDuration / 1000)}s)`,
+          );
           setTimeout(() => {
+            console.log("⏹️ Video gestoppt");
             youtubePlayer.setAttribute("src", "");
             youtubePlayer.setAttribute("title", "");
           }, videoDuration);
         }
+      }
+
+      if (videoImgDuration > 0) {
+        let thumbnailShown = false;
+
+        setTimeout(() => {
+          const iframe = youtubePlayer;
+
+          if (!iframe || !iframe.getAttribute("src")) {
+            console.warn("⚠️ Video lädt nicht - zeige Thumbnail als Fallback");
+            showThumbnailFallback();
+            thumbnailShown = true;
+          } else {
+            console.log("✅ Video lädt erfolgreich - kein Thumbnail nötig");
+          }
+        }, 2000);
+
+        function showThumbnailFallback() {
+          if (thumbnailShown) return;
+
+          console.log("📸 Erstelle Thumbnail-Fallback...");
+          const thumbnailImg = createThumbnailElement();
+
+          const testImg = new Image();
+          testImg.onload = () => {
+            thumbnailImg.setAttribute("src", maxresUrl);
+            thumbnailImg.setAttribute("alt", videoTitle);
+            console.log("✅ Thumbnail (maxres) angezeigt");
+          };
+          testImg.onerror = () => {
+            thumbnailImg.setAttribute("src", fallbackUrl);
+            thumbnailImg.setAttribute("alt", videoTitle);
+            console.log("✅ Thumbnail (fallback) angezeigt");
+          };
+          testImg.src = maxresUrl;
+
+          setTimeout(() => {
+            thumbnailImg.setAttribute("src", "");
+            thumbnailImg.setAttribute("alt", "");
+            if (thumbnailImg.parentNode) {
+              thumbnailImg.parentNode.removeChild(thumbnailImg);
+            }
+            console.log("🗑️ Thumbnail entfernt");
+          }, videoImgDuration);
+
+          thumbnailShown = true;
+        }
+      } else {
+        console.log("ℹ️ Kein Thumbnail konfiguriert (videoImgDuration = 0)");
       }
     }
 
@@ -213,6 +248,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     })();
   } catch (error) {
-    console.error("Haupt-Fehler:", error);
+    console.error("❌ Haupt-Fehler:", error);
   }
 });
